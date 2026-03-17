@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Collab Hub - Главная</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">ProjectCollab</a>
+            <nav class="nav">
+                <a href="projects.html">Проекты</a>
+                <a href="#">Как это работает</a>
+                <a href="login.html" class="btn btn-outline">Вход</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Найди команду для своего проекта</h1>
+                <p>Объединяем заказчиков и исполнителей для совместной работы</p>
+                <a href="create-project.html" class="btn btn-primary" style="font-size: 18px; padding: 12px 30px;">Создать проект</a>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2>Последние проекты</h2>
+            <div class="projects-grid" id="projects-list">
+                <!-- Сюда JS подгрузит проекты -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Project Collab Hub. Учебный проект.</p>
+        </div>
+    </footer>
+
+    <script src="js/storage.js"></script>
+    <script src="js/projects.js"></script>
+</body>
+</html>
