@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="project_collab_hub.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="1"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="5046"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="bid_statuses" custom_title="0" dock_id="1" table="4,12:mainbid_statuses"/><table title="projects" custom_title="0" dock_id="2" table="4,8:mainprojects"/><dock_state state="000000ff00000000fd00000001000000020000026900000215fc0100000001fc00000000000002690000012e00fffffffa000000010100000002fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000012e00fffffffb000000160064006f0063006b00420072006f00770073006500320100000000ffffffff0000012e00ffffff000002690000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="bid_statuses" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="35"/><column index="2" value="83"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="projects" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="35"/><column index="2" value="58"/><column index="3" value="63"/><column index="4" value="231"/><column index="5" value="300"/><column index="6" value="63"/><column index="7" value="87"/><column index="8" value="79"/><column index="9" value="159"/><column index="10" value="159"/><column index="11" value="67"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- =====================================================
+-- База данных: Project Collab Hub
+-- СУБД: SQLite (для DB Browser)
+-- =====================================================
+
+-- Включаем поддержку внешних ключей
+PRAGMA foreign_keys = ON;
+
+-- =====================================================
+-- 1. СПРАВОЧНИКИ (родительские таблицы)
+-- =====================================================
+
+-- Таблица ролей пользователей
+CREATE TABLE roles (
+    id INTEGER PRIMARY KEY,
+    role_name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- Таблица статусов проектов
+CREATE TABLE project_statuses (
+    id INTEGER PRIMARY KEY,
+    status_name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- Таблица статусов откликов
+CREATE TABLE bid_statuses (
+    id INTEGER PRIMARY KEY,
+    status_name TEXT UNIQUE NOT NULL
+);
+
+-- Таблица статусов задач
+CREATE TABLE task_statuses (
+    id INTEGER PRIMARY KEY,
+    status_name TEXT UNIQUE NOT NULL,
+    board_column INTEGER NOT NULL -- порядок колонок на доске (1,2,3,4)
+);
+
+-- Таблица навыков
+CREATE TABLE skills (
+    id INTEGER PRIMARY KEY,
+    skill_name TEXT UNIQUE NOT NULL,
+    category TEXT -- 'backend', 'frontend', 'design' и т.д.
+);
+
+-- =====================================================
+-- 2. ОСНОВНЫЕ ТАБЛИЦЫ
+-- =====================================================
+
+-- Таблица пользователей
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    role_id INTEGER NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    avatar_url TEXT,
+    bio TEXT,
+    hourly_rate REAL, -- для исполнителей
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
+);
+
+-- Таблица проектов
+CREATE TABLE projects (
+    id INTEGER PRIMARY KEY,
+    client_id INTEGER NOT NULL,
+    status_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    budget REAL,
+    deadline TEXT,
+    views_count INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    published_at TEXT,
+    is_deleted INTEGER DEFAULT 0, -- soft delete
+    FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES project_statuses(id) ON DELETE RESTRICT
+);
+
+-- Таблица откликов на проекты
+CREATE TABLE bids (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL,
+    developer_id INTEGER NOT NULL,
+    status_id INTEGER NOT NULL,
+    cover_letter TEXT,
+    proposed_budget REAL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (developer_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES bid_statuses(id) ON DELETE RESTRICT
+);
+
+-- Таблица участников проекта (команда)
+CREATE TABLE teams (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    role_in_project TEXT, -- 'Заказчик', 'Тимлид', 'Разработчик'
+    joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(project_id, user_id), -- чтобы пользователь не мог быть добавлен дважды
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Таблица задач
+CREATE TABLE tasks (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL,
+    created_by INTEGER NOT NULL, -- кто создал задачу
+    assigned_to INTEGER, -- на кого назначена (может быть NULL)
+    status_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    priority INTEGER DEFAULT 1, -- 1-низкий, 2-средний, 3-высокий
+    position INTEGER NOT NULL, -- для сортировки внутри колонки
+    deadline TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    completed_at TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (status_id) REFERENCES task_statuses(id) ON DELETE RESTRICT
+);
+
+-- Таблица комментариев к задачам
+CREATE TABLE task_comments (
+    id INTEGER PRIMARY KEY,
+    task_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Таблица личных сообщений
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    message_text TEXT NOT NULL,
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Таблица уведомлений
+CREATE TABLE notifications (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL, -- 'new_bid', 'task_assigned', 'message' и т.д.
+    content TEXT NOT NULL,
+    link TEXT, -- ссылка на соответствующий объект (проект/задачу)
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- 3. СВЯЗУЮЩИЕ ТАБЛИЦЫ (многие-ко-многим)
+-- =====================================================
+
+-- Связь пользователей с навыками
+CREATE TABLE user_skills (
+    user_id INTEGER NOT NULL,
+    skill_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, skill_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
+);
+
+-- Связь проектов с требуемыми навыками
+CREATE TABLE project_skills (
+    project_id INTEGER NOT NULL,
+    skill_id INTEGER NOT NULL,
+    PRIMARY KEY (project_id, skill_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- 4. ИНДЕКСЫ (для ускорения запросов)
+-- =====================================================
+
+-- Индекс для поиска проектов по названию
+CREATE INDEX idx_projects_title ON projects(title);
+
+-- Индекс для фильтрации проектов по статусу и дате публикации
+CREATE INDEX idx_projects_status_published ON projects(status_id, published_at);
+
+-- Индекс для поиска задач по исполнителю и статусу
+CREATE INDEX idx_tasks_assigned_status ON tasks(assigned_to, status_id);
+
+-- Индекс для поиска откликов по разработчику
+CREATE INDEX idx_bids_developer ON bids(developer_id);
+
+-- Индекс для поиска сообщений по участникам
+CREATE INDEX idx_messages_participants ON messages(sender_id, receiver_id);
+
+-- Индекс для уведомлений пользователя
+CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read);
+
+-- =====================================================
+-- 5. НАЧАЛЬНЫЕ ДАННЫЕ (справочники)
+-- =====================================================
+
+-- Заполняем роли
+INSERT INTO roles (role_name, description) VALUES 
+('client', 'Заказчик, создает проекты'),
+('developer', 'Исполнитель, выполняет задачи'),
+('admin', 'Администратор платформы');
+
+-- Заполняем статусы проектов
+INSERT INTO project_statuses (status_name, description) VALUES 
+('moderation', 'На модерации'),
+('open', 'Открыт для откликов'),
+('in_progress', 'В работе'),
+('completed', 'Завершен'),
+('rejected', 'Отклонен модератором');
+
+-- Заполняем статусы откликов
+INSERT INTO bid_statuses (status_name) VALUES 
+('pending'),  -- ожидает рассмотрения
+('accepted'), -- принят
+('rejected'); -- отклонен
+
+-- Заполняем статусы задач (с порядком колонок для Kanban)
+INSERT INTO task_statuses (status_name, board_column) VALUES 
+('todo', 1),        -- Нужно сделать
+('in_progress', 2), -- В работе
+('review', 3),      -- На проверке
+('done', 4);        -- Готово
+
+-- Заполняем справочник навыков
+INSERT INTO skills (skill_name, category) VALUES
+('PHP', 'backend'),
+('JavaScript', 'frontend'),
+('Python', 'backend'),
+('UI/UX Design', 'design'),
+('HTML/CSS', 'frontend'),
+('MySQL', 'backend'),
+('PostgreSQL', 'backend'),
+('React', 'frontend'),
+('Vue.js', 'frontend'),
+('Angular', 'frontend'),
+('Laravel', 'backend'),
+('Django', 'backend'),
+('WordPress', 'cms'),
+('SEO', 'marketing'),
+('SMM', 'marketing'),
+('Copywriting', 'content'),
+('Project Management', 'management'),
+('DevOps', 'infrastructure'),
+('Docker', 'infrastructure'),
+('Git', 'tools');
+
+-- =====================================================
+-- 6. ТЕСТОВЫЕ ДАННЫЕ (опционально, для проверки)
+-- =====================================================
+
+-- Добавляем тестового администратора (пароль: admin123)
+INSERT INTO users (role_id, email, password_hash, full_name, is_active) VALUES 
+(3, 'admin@projecthub.local', '$2y$10$YourHashHere', 'Администратор', 1);
+
+-- Добавляем тестовых пользователей
+INSERT INTO users (role_id, email, password_hash, full_name, hourly_rate, bio) VALUES 
+(1, 'client@example.com', '$2y$10$YourHashHere', 'Иван Петров (Заказчик)', NULL, 'Ищу разработчиков для своих проектов'),
+(2, 'dev@example.com', '$2y$10$YourHashHere', 'Петр Иванов (Разработчик)', 1500, 'PHP, JavaScript, опыт 5 лет');
+
+-- Связываем разработчика с навыками
+INSERT INTO user_skills (user_id, skill_id) VALUES 
+(2, 1), -- PHP
+(2, 2), -- JavaScript
+(2, 6); -- MySQL
+
+-- Создаем тестовый проект
+INSERT INTO projects (client_id, status_id, title, description, budget, deadline, published_at) VALUES 
+(1, 2, 'Разработка интернет-магазина', 'Требуется разработать интернет-магазин на PHP с корзиной и админкой', 50000, '2026-06-01', CURRENT_TIMESTAMP);
+
+-- Связываем проект с навыками
+INSERT INTO project_skills (project_id, skill_id) VALUES 
+(1, 1), -- PHP
+(1, 2), -- JavaScript
+(1, 6); -- MySQL
+
+-- Добавляем отклик на проект
+INSERT INTO bids (project_id, developer_id, status_id, cover_letter, proposed_budget) VALUES 
+(1, 2, 1, 'Готов взяться за проект, имею большой опыт в разработке интернет-магазинов', 45000);
+
+-- Добавляем разработчика в команду проекта
+INSERT INTO teams (project_id, user_id, role_in_project) VALUES 
+(1, 1, 'Заказчик'),
+(1, 2, 'Ведущий разработчик');
+
+-- Создаем задачи для проекта
+INSERT INTO tasks (project_id, created_by, assigned_to, status_id, title, description, priority, position) VALUES 
+(1, 1, 2, 1, 'Настройка сервера', 'Установить и настроить веб-сервер, PHP, MySQL', 2, 1),
+(1, 1, 2, 1, 'Разработка базы данных', 'Спроектировать и создать структуру БД', 3, 2),
+(1, 1, NULL, 1, 'Верстка главной страницы', 'Сверстать адаптивный макет главной страницы', 2, 3);
+
+-- Добавляем комментарий к задаче
+INSERT INTO task_comments (task_id, user_id, comment) VALUES 
+(1, 2, 'Какой веб-сервер предпочитаете? Apache или Nginx?');
+
+-- Добавляем уведомление
+INSERT INTO notifications (user_id, type, content, link) VALUES 
+(1, 'new_bid', 'Новый отклик на ваш проект &quot;Разработка интернет-магазина&quot;', '/projects/1');</sql><current_tab id="0"/></tab_sql></sqlb_project>
