@@ -96,13 +96,13 @@
                     
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="login-email" class="form-control" placeholder="example@mail.com">
+                        <input type="email" id="login-email" class="form-control" placeholder="example@mail.com" required>
                         <div id="login-email-error" class="error-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label>Пароль</label>
-                        <input type="password" id="login-password" class="form-control" placeholder="••••••">
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••" required>
                         <div id="login-password-error" class="error-message"></div>
                     </div>
 
@@ -115,25 +115,25 @@
 
                     <div class="form-group">
                         <label>Полное имя</label>
-                        <input type="text" id="register-name" class="form-control" placeholder="Иван Петров">
+                        <input type="text" id="register-name" class="form-control" placeholder="Иван Петров" required>
                         <div id="register-name-error" class="error-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="register-email" class="form-control" placeholder="example@mail.com">
+                        <input type="email" id="register-email" class="form-control" placeholder="example@mail.com" required>
                         <div id="register-email-error" class="error-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label>Пароль</label>
-                        <input type="password" id="register-password" class="form-control" placeholder="••••••">
+                        <input type="password" id="register-password" class="form-control" placeholder="••••••" required>
                         <div id="register-password-error" class="error-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label>Подтверждение пароля</label>
-                        <input type="password" id="register-confirm" class="form-control" placeholder="••••••">
+                        <input type="password" id="register-confirm" class="form-control" placeholder="••••••" required>
                         <div id="register-confirm-error" class="error-message"></div>
                     </div>
 
@@ -161,6 +161,7 @@
         </div>
     </footer>
 
+    <script src="js/api.js"></script>
     <script>
         // Переключение между вкладками
         function switchTab(tab) {
@@ -176,15 +177,50 @@
             }
         }
 
-        // Валидация форм
-        document.getElementById('login-form').addEventListener('submit', (e) => {
+        // Обработка входа
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Вход выполнен (демо-режим)');
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const result = await api.login(email, password);
+            
+            if(result.status === 'success') {
+                alert('Вход выполнен!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Ошибка: ' + result.message);
+            }
         });
 
-        document.getElementById('register-form').addEventListener('submit', (e) => {
+        // Обработка регистрации
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Регистрация выполнена (демо-режим)');
+            
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if(password !== confirm) {
+                alert('Пароли не совпадают');
+                return;
+            }
+            
+            const userData = {
+                email: document.getElementById('register-email').value,
+                password: password,
+                full_name: document.getElementById('register-name').value,
+                role_id: document.querySelector('input[name="role"]:checked').value === 'client' ? 1 : 2
+            };
+            
+            const result = await api.register(userData);
+            
+            if(result.status === 'success') {
+                alert('Регистрация успешна! Теперь войдите.');
+                switchTab('login');
+            } else {
+                alert('Ошибка: ' + result.message);
+            }
         });
 
         // Валидация в реальном времени

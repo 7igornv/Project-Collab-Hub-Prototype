@@ -40,6 +40,18 @@
         .form-control.error {
             border-color: var(--danger);
         }
+
+        .auth-warning {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .auth-warning .btn {
+            margin: 10px;
+        }
     </style>
 </head>
 <body>
@@ -49,26 +61,65 @@
             <nav class="nav">
                 <a href="index.html">Главная</a>
                 <a href="projects.html">Проекты</a>
-                <a href="profile.html">Профиль</a>
+                <a href="profile.html" id="profile-link">Профиль</a>
             </nav>
         </div>
     </header>
 
     <main>
         <div class="container">
-            <div class="create-project-container">
+            <div id="create-project-container" class="create-project-container">
+                <!-- Сюда будет вставлен контент в зависимости от авторизации -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Project Collab Hub. Учебный проект.</p>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Проверка авторизации
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const container = document.getElementById('create-project-container');
+            
+            if(!token) {
+                container.innerHTML = `
+                    <div class="auth-warning">
+                        <h2>Требуется авторизация</h2>
+                        <p>Чтобы создать проект, пожалуйста, войдите или зарегистрируйтесь</p>
+                        <a href="login.html" class="btn btn-primary">Войти</a>
+                        <a href="register.html" class="btn btn-outline">Регистрация</a>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+
+        // Загрузка формы создания проекта
+        async function loadCreateProjectForm() {
+            if(!checkAuth()) return;
+
+            const container = document.getElementById('create-project-container');
+            
+            container.innerHTML = `
                 <h1>Создание нового проекта</h1>
                 
                 <form id="create-project-form">
                     <div class="form-group">
                         <label>Название проекта *</label>
-                        <input type="text" id="project-title" class="form-control" placeholder="Например: Разработка интернет-магазина">
+                        <input type="text" id="project-title" class="form-control" placeholder="Например: Разработка интернет-магазина" required>
                         <div id="title-error" class="error-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label>Описание проекта *</label>
-                        <textarea id="project-description" class="form-control" rows="6" placeholder="Подробно опишите, что нужно сделать..."></textarea>
+                        <textarea id="project-description" class="form-control" rows="6" placeholder="Подробно опишите, что нужно сделать..." required></textarea>
                         <div id="description-error" class="error-message"></div>
                     </div>
 
@@ -94,96 +145,93 @@
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Опубликовать проект</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </main>
+            `;
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 Project Collab Hub. Учебный проект.</p>
-        </div>
-    </footer>
-
-    <script>
-        // Список доступных навыков
-        const availableSkills = [
-            'PHP', 'JavaScript', 'Python', 'UI/UX Design', 'HTML/CSS',
-            'MySQL', 'React', 'Vue.js', 'Laravel', 'WordPress',
-            'SEO', 'SMM', 'Copywriting', 'Project Management', 'DevOps'
-        ];
-
-        // Заполняем сетку навыков
-        const skillsGrid = document.getElementById('skills-grid');
-        skillsGrid.innerHTML = availableSkills.map(skill => `
-            <label class="skill-checkbox">
-                <input type="checkbox" name="skills" value="${skill}"> ${skill}
-            </label>
-        `).join('');
-
-        // Валидация
-        const titleInput = document.getElementById('project-title');
-        const descInput = document.getElementById('project-description');
-        const budgetInput = document.getElementById('project-budget');
-
-        titleInput.addEventListener('input', function() {
-            const error = document.getElementById('title-error');
-            if (this.value.length < 5) {
-                error.textContent = 'Название должно быть не менее 5 символов';
-                this.classList.add('error');
-            } else {
-                error.textContent = '';
-                this.classList.remove('error');
-            }
-        });
-
-        descInput.addEventListener('input', function() {
-            const error = document.getElementById('description-error');
-            if (this.value.length < 20) {
-                error.textContent = 'Описание должно быть не менее 20 символов';
-                this.classList.add('error');
-            } else {
-                error.textContent = '';
-                this.classList.remove('error');
-            }
-        });
-
-        budgetInput.addEventListener('input', function() {
-            const error = document.getElementById('budget-error');
-            if (this.value && this.value < 1000) {
-                error.textContent = 'Бюджет не может быть менее 1000 ₽';
-                this.classList.add('error');
-            } else {
-                error.textContent = '';
-                this.classList.remove('error');
-            }
-        });
-
-        // Отправка формы
-        document.getElementById('create-project-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+            // Загружаем список навыков
+            const skills = [
+                {id: 1, name: 'PHP'}, {id: 2, name: 'JavaScript'}, {id: 3, name: 'Python'},
+                {id: 4, name: 'UI/UX'}, {id: 5, name: 'HTML/CSS'}, {id: 6, name: 'MySQL'},
+                {id: 7, name: 'React'}, {id: 8, name: 'Vue.js'}, {id: 9, name: 'Laravel'},
+                {id: 10, name: 'WordPress'}
+            ];
             
-            // Собираем выбранные навыки
-            const selectedSkills = Array.from(document.querySelectorAll('input[name="skills"]:checked'))
-                .map(cb => cb.value);
-            
-            const newProject = {
-                id: Date.now(),
-                title: titleInput.value,
-                description: descInput.value,
-                budget: budgetInput.value,
-                skills: selectedSkills,
-                author: 'Текущий пользователь',
-                created: new Date().toISOString().split('T')[0]
-            };
+            const skillsGrid = document.getElementById('skills-grid');
+            skillsGrid.innerHTML = skills.map(skill => `
+                <label class="skill-checkbox">
+                    <input type="checkbox" name="skills" value="${skill.id}"> ${skill.name}
+                </label>
+            `).join('');
 
-            // Сохраняем в localStorage
-            const projects = JSON.parse(localStorage.getItem('collab_projects') || '[]');
-            projects.push(newProject);
-            localStorage.setItem('collab_projects', JSON.stringify(projects));
+            setupValidation();
+        }
 
-            alert('Проект успешно создан!');
-            window.location.href = 'index.html';
-        });
+        // Валидация формы
+        function setupValidation() {
+            const titleInput = document.getElementById('project-title');
+            const descInput = document.getElementById('project-description');
+            const budgetInput = document.getElementById('project-budget');
+
+            titleInput.addEventListener('input', function() {
+                const error = document.getElementById('title-error');
+                if (this.value.length < 5) {
+                    error.textContent = 'Название должно быть не менее 5 символов';
+                    this.classList.add('error');
+                } else {
+                    error.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            descInput.addEventListener('input', function() {
+                const error = document.getElementById('description-error');
+                if (this.value.length < 20) {
+                    error.textContent = 'Описание должно быть не менее 20 символов';
+                    this.classList.add('error');
+                } else {
+                    error.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            budgetInput.addEventListener('input', function() {
+                const error = document.getElementById('budget-error');
+                if (this.value && this.value < 1000) {
+                    error.textContent = 'Бюджет не может быть менее 1000 ₽';
+                    this.classList.add('error');
+                } else {
+                    error.textContent = '';
+                    this.classList.remove('error');
+                }
+            });
+
+            // Отправка формы
+            document.getElementById('create-project-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const selectedSkills = Array.from(document.querySelectorAll('input[name="skills"]:checked'))
+                    .map(cb => parseInt(cb.value));
+                
+                const projectData = {
+                    title: document.getElementById('project-title').value,
+                    description: document.getElementById('project-description').value,
+                    budget: parseFloat(document.getElementById('project-budget').value) || null,
+                    deadline: document.getElementById('project-deadline').value || null,
+                    skills: selectedSkills
+                };
+                
+                const result = await api.createProject(projectData);
+                
+                if(result.status === 'success') {
+                    alert('Проект успешно создан!');
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
+                }
+            });
+        }
+
+        // Инициализация
+        loadCreateProjectForm();
     </script>
 </body>
 </html>

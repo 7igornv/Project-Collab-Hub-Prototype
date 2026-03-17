@@ -5,6 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Collab Hub - Главная</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero .btn {
+            font-size: 18px;
+            padding: 15px 40px;
+            background: white;
+            color: var(--primary);
+            border: none;
+        }
+
+        .hero .btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 0;
+            }
+            .hero h1 {
+                font-size: 32px;
+            }
+            .hero p {
+                font-size: 18px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--secondary);
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -12,9 +69,10 @@
             <a href="index.html" class="logo">ProjectCollab</a>
             <nav class="nav">
                 <a href="projects.html">Проекты</a>
-                <a href="#">Как это работает</a>
-                <a href="login.html" class="btn btn-outline">Вход</a>
-                <a href="register.html" class="btn btn-primary">Регистрация</a>
+                <a href="#" id="profile-link" style="display: none;">Профиль</a>
+                <a href="login.html" id="login-link" class="btn btn-outline">Вход</a>
+                <a href="register.html" id="register-link" class="btn btn-primary">Регистрация</a>
+                <a href="#" id="logout-link" style="display: none;" class="btn btn-outline">Выход</a>
             </nav>
         </div>
     </header>
@@ -31,7 +89,7 @@
         <section class="container">
             <h2>Последние проекты</h2>
             <div class="projects-grid" id="projects-list">
-                <!-- Сюда JS подгрузит проекты -->
+                <div class="loading">Загрузка проектов...</div>
             </div>
         </section>
     </main>
@@ -42,7 +100,71 @@
         </div>
     </footer>
 
-    <script src="js/storage.js"></script>
-    <script src="js/projects.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Проверка авторизации
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if(token) {
+                document.getElementById('login-link').style.display = 'none';
+                document.getElementById('register-link').style.display = 'none';
+                document.getElementById('profile-link').style.display = 'inline';
+                document.getElementById('logout-link').style.display = 'inline';
+                
+                // Добавляем имя пользователя в навигацию
+                const profileLink = document.getElementById('profile-link');
+                profileLink.innerHTML = user.full_name || 'Профиль';
+                profileLink.href = 'profile.html';
+            }
+        }
+
+        // Выход
+        document.getElementById('logout-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.reload();
+        });
+
+        // Загрузка проектов
+        async function loadProjects() {
+            const projectsList = document.getElementById('projects-list');
+            
+            try {
+                const result = await api.getProjects(1, 6);
+                
+                if(result.status === 'success' && result.data.length > 0) {
+                    projectsList.innerHTML = result.data.map(project => `
+                        <div class="project-card">
+                            <h3 class="project-title">${project.title}</h3>
+                            <p>${project.description.substring(0, 100)}...</p>
+                            <p><strong>Бюджет:</strong> ${project.budget} ₽</p>
+                            <p><strong>Заказчик:</strong> ${project.client_name}</p>
+                            <div class="project-skills">
+                                ${project.skills ? project.skills.split(',').map(skill => 
+                                    `<span class="skill-tag">${skill}</span>`
+                                ).join('') : ''}
+                            </div>
+                            <button class="btn btn-outline" onclick="viewProject(${project.id})">Подробнее</button>
+                        </div>
+                    `).join('');
+                } else {
+                    projectsList.innerHTML = '<p style="text-align: center;">Проектов пока нет</p>';
+                }
+            } catch(error) {
+                projectsList.innerHTML = '<p style="text-align: center; color: var(--danger);">Ошибка загрузки проектов</p>';
+            }
+        }
+        
+        window.viewProject = (id) => {
+            window.location.href = `project.html?id=${id}`;
+        };
+        
+        // Инициализация
+        checkAuth();
+        loadProjects();
+    </script>
 </body>
 </html>

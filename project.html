@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проект - Project Collab Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .project-detail {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .project-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .project-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--light);
+            border-radius: var(--border-radius);
+        }
+
+        .project-meta-item {
+            text-align: center;
+        }
+
+        .project-meta-item .label {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+
+        .project-meta-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .project-description {
+            margin: 30px 0;
+            line-height: 1.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--secondary);
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: var(--danger);
+        }
+
+        .back-button {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">ProjectCollab</a>
+            <nav class="nav">
+                <a href="index.html">Главная</a>
+                <a href="projects.html">Проекты</a>
+                <a href="profile.html" id="profile-link">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="back-button">
+                <button class="btn btn-outline" onclick="history.back()">← Назад</button>
+            </div>
+            
+            <div id="project-detail" class="project-detail">
+                <div class="loading">Загрузка проекта...</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Project Collab Hub. Учебный проект.</p>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
+
+        async function loadProject() {
+            const container = document.getElementById('project-detail');
+            
+            if(!projectId) {
+                container.innerHTML = '<div class="error">ID проекта не указан</div>';
+                return;
+            }
+            
+            try {
+                const result = await api.getProject(projectId);
+                
+                if(result.status === 'success' && result.data) {
+                    const p = result.data;
+                    
+                    // Форматирование даты
+                    const createdDate = new Date(p.created_at).toLocaleDateString('ru-RU');
+                    
+                    container.innerHTML = `
+                        <div class="project-header">
+                            <h1>${p.title}</h1>
+                            <p><strong>Заказчик:</strong> ${p.client_name}</p>
+                        </div>
+
+                        <div class="project-meta">
+                            <div class="project-meta-item">
+                                <div class="label">Бюджет</div>
+                                <div class="value">${p.budget ? p.budget + ' ₽' : 'Не указан'}</div>
+                            </div>
+                            <div class="project-meta-item">
+                                <div class="label">Просмотры</div>
+                                <div class="value">${p.views_count || 0}</div>
+                            </div>
+                            <div class="project-meta-item">
+                                <div class="label">Дата создания</div>
+                                <div class="value">${createdDate}</div>
+                            </div>
+                        </div>
+
+                        <div class="project-description">
+                            <h3>Описание проекта</h3>
+                            <p>${p.description.replace(/\n/g, '<br>')}</p>
+                        </div>
+
+                        ${p.skills ? `
+                            <div class="project-skills">
+                                <h3>Требуемые навыки</h3>
+                                ${p.skills.split(',').map(skill => 
+                                    `<span class="skill-tag">${skill}</span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${p.deadline ? `
+                            <p><strong>Дедлайн:</strong> ${new Date(p.deadline).toLocaleDateString('ru-RU')}</p>
+                        ` : ''}
+                    `;
+                } else {
+                    container.innerHTML = '<div class="error">Проект не найден</div>';
+                }
+            } catch(error) {
+                container.innerHTML = '<div class="error">Ошибка загрузки проекта</div>';
+            }
+        }
+
+        loadProject();
+    </script>
+</body>
+</html>
