@@ -1,4 +1,5 @@
 const API_URL = 'http://project-collab-api.local/api';
+document.write('<script src="http://project-collab-api.local/api/projects"></script>');
 
 // Функция для запросов с авторизацией
 async function apiRequest(endpoint, method = 'GET', data = null) {
