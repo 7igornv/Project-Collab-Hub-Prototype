@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Создание проекта - Project Collab Hub</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -60,7 +61,6 @@
             <a href="index.html" class="logo">ProjectCollab</a>
             <nav class="nav">
                 <a href="index.html">Главная</a>
-                <a href="projects.html">Проекты</a>
                 <a href="profile.html" id="profile-link">Профиль</a>
             </nav>
         </div>
@@ -93,7 +93,7 @@
                         <h2>Требуется авторизация</h2>
                         <p>Чтобы создать проект, пожалуйста, войдите или зарегистрируйтесь</p>
                         <a href="login.html" class="btn btn-primary">Войти</a>
-                        <a href="register.html" class="btn btn-outline">Регистрация</a>
+                        <a href="login.html" class="btn btn-outline">Регистрация</a>
                     </div>
                 `;
                 return false;

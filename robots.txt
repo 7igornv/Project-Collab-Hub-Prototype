@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /config/
+Disallow: /controllers/
+Disallow: /models/
+Disallow: /api/
+
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /profile.html
+Allow: /project.html
+Allow: /create-project.html
+
+Sitemap: http://project-collab-api.local/sitemap.xml

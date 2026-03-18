@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>Задача - Project Collab Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .task-detail {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .task-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status-todo { background: #e3f2fd; color: #1565c0; }
+        .status-progress { background: #fff3e0; color: #ef6c00; }
+        .status-review { background: #f3e5f5; color: #7b1fa2; }
+        .status-done { background: #e8f5e9; color: #2e7d32; }
+
+        .task-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--light);
+            border-radius: var(--border-radius);
+        }
+
+        .bids-section {
+            margin-top: 30px;
+        }
+
+        .bid-card {
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .bid-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">ProjectCollab</a>
+            <nav class="nav">
+                <a href="index.html">Главная</a>
+                <a href="profile.html" id="profile-link">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="back-button">
+                <button class="btn btn-outline" onclick="history.back()">← Назад</button>
+            </div>
+            
+            <div id="task-detail" class="task-detail">
+                Загрузка задачи...
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Project Collab Hub. Учебный проект.</p>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('id');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        async function loadTask() {
+            if(!taskId) {
+                document.getElementById('task-detail').innerHTML = '<div class="error">ID задачи не указан</div>';
+                return;
+            }
+
+            try {
+                const result = await api.getTask(taskId);
+                const bidsResult = await api.getTaskBids(taskId);
+                
+                if(result.status === 'success') {
+                    const task = result.data;
+                    const bids = bidsResult.status === 'success' ? bidsResult.data : [];
+                    
+                    renderTask(task, bids);
+                }
+            } catch(error) {
+                console.error('Error loading task:', error);
+            }
+        }
+
+        function renderTask(task, bids) {
+            const statusClasses = {
+                'todo': 'status-todo',
+                'in_progress': 'status-progress',
+                'review': 'status-review',
+                'done': 'status-done'
+            };
+
+            const statusText = {
+                'todo': 'К выполнению',
+                'in_progress': 'В работе',
+                'review': 'На проверке',
+                'done': 'Готово'
+            };
+
+            const container = document.getElementById('task-detail');
+            const isTaskAvailable = task.status === 'todo' && !task.assigned_to;
+            const isTaskOwner = task.created_by === user.id;
+            const isAssigned = task.assigned_to === user.id;
+
+            container.innerHTML = `
+                <div class="task-header">
+                    <h1>${task.title}</h1>
+                    <span class="task-status ${statusClasses[task.status] || ''}">${statusText[task.status] || task.status}</span>
+                </div>
+
+                <div class="task-meta">
+                    <div><strong>Проект:</strong> ${task.project_title}</div>
+                    <div><strong>Приоритет:</strong> ${task.priority === 1 ? 'Низкий' : task.priority === 2 ? 'Средний' : 'Высокий'}</div>
+                    <div><strong>Исполнитель:</strong> ${task.assignee_name || 'Не назначен'}</div>
+                </div>
+
+                <div class="task-description">
+                    <h3>Описание</h3>
+                    <p>${task.description || 'Нет описания'}</p>
+                </div>
+
+                ${!isAssigned && isTaskAvailable && user.role_id === 2 ? `
+                    <div style="margin: 20px 0;">
+                        <h3>Откликнуться на задачу</h3>
+                        <form id="bid-form">
+                            <div class="form-group">
+                                <label>Ваше предложение (бюджет)</label>
+                                <input type="number" id="bid-budget" class="form-control" placeholder="Сколько хотите получить?">
+                            </div>
+                            <div class="form-group">
+                                <label>Сопроводительное письмо</label>
+                                <textarea id="bid-letter" class="form-control" rows="3" placeholder="Почему вы подходите для этой задачи?"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Откликнуться</button>
+                        </form>
+                    </div>
+                ` : ''}
+
+                ${isTaskOwner ? `
+                    <div class="bids-section">
+                        <h3>Отклики на задачу (${bids.length})</h3>
+                        <div class="bids-list">
+                            ${bids.map(bid => `
+                                <div class="bid-card">
+                                    <p><strong>Исполнитель:</strong> ${bid.developer_name}</p>
+                                    <p><strong>Предложение:</strong> ${bid.proposed_budget || 'не указано'} ₽</p>
+                                    <p>${bid.cover_letter || ''}</p>
+                                    ${bid.status === 'pending' ? `
+                                        <div class="bid-actions">
+                                            <button class="btn btn-small btn-primary" onclick="handleBid(${bid.id}, 'accept')">Принять</button>
+                                            <button class="btn btn-small btn-danger" onclick="handleBid(${bid.id}, 'reject')">Отклонить</button>
+                                        </div>
+                                    ` : `
+                                        <p><strong>Статус:</strong> ${bid.status === 'accepted' ? '✅ Принят' : '❌ Отклонен'}</p>
+                                    `}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${isAssigned ? `
+                    <div style="margin-top: 30px;">
+                        <h3>Управление задачей</h3>
+                        <select id="task-status-select" class="form-control" style="width: 200px;" onchange="updateTaskStatus(this.value)">
+                            <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>К выполнению</option>
+                            <option value="in_progress" ${task.status === 'in_progress' ? 'selected' : ''}>В работе</option>
+                            <option value="review" ${task.status === 'review' ? 'selected' : ''}>На проверке</option>
+                            <option value="done" ${task.status === 'done' ? 'selected' : ''}>Готово</option>
+                        </select>
+                    </div>
+                ` : ''}
+            `;
+
+            if(document.getElementById('bid-form')) {
+                document.getElementById('bid-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const bidData = {
+                        proposed_budget: document.getElementById('bid-budget').value || null,
+                        cover_letter: document.getElementById('bid-letter').value || ''
+                    };
+                    
+                    const result = await api.createBid(taskId, bidData);
+                    if(result.status === 'success') {
+                        alert('Отклик отправлен!');
+                        loadTask();
+                    }
+                });
+            }
+        }
+
+        async function handleBid(bidId, action) {
+            const result = action === 'accept' ? await api.acceptBid(bidId) : await api.rejectBid(bidId);
+            if(result.status === 'success') {
+                loadTask();
+            }
+        }
+
+        async function updateTaskStatus(newStatus) {
+            const result = await api.updateTaskStatus(taskId, newStatus);
+            if(result.status === 'success') {
+                loadTask();
+            }
+        }
+
+        loadTask();
+    </script>
+</body>
+</html>

@@ -1,7 +1,5 @@
 const API_URL = 'http://project-collab-api.local/api';
-document.write('<script src="http://project-collab-api.local/api/projects"></script>');
 
-// Функция для запросов с авторизацией
 async function apiRequest(endpoint, method = 'GET', data = null) {
     const token = localStorage.getItem('token');
     
@@ -32,7 +30,7 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     }
 }
 
-// Авторизация
+// ========== АВТОРИЗАЦИЯ ==========
 async function login(email, password) {
     const result = await apiRequest('/auth/login', 'POST', { email, password });
     if(result.status === 'success' && result.data?.token) {
@@ -46,9 +44,13 @@ async function register(userData) {
     return await apiRequest('/auth/register', 'POST', userData);
 }
 
-// Проекты
-async function getProjects(page = 1, limit = 10, skill = '', search = '') {
-    let url = `/projects?page=${page}&limit=${limit}`;
+async function getCurrentUser() {
+    return await apiRequest('/auth/me', 'GET');
+}
+
+// ========== ПРОЕКТЫ ==========
+async function getProjects(page = 1, limit = 10, skill = '', search = '', sort = 'newest') {
+    let url = `/projects?page=${page}&limit=${limit}&sort=${sort}`;
     if(skill) url += `&skill=${encodeURIComponent(skill)}`;
     if(search) url += `&search=${encodeURIComponent(search)}`;
     return await apiRequest(url);
@@ -62,11 +64,105 @@ async function createProject(projectData) {
     return await apiRequest('/projects', 'POST', projectData);
 }
 
-// Сохраняем функции в глобальную область
+async function updateProject(id, projectData) {
+    return await apiRequest(`/projects/${id}`, 'PUT', projectData);
+}
+
+async function deleteProject(id) {
+    return await apiRequest(`/projects/${id}`, 'DELETE');
+}
+
+async function getUserProjects() {
+    return await apiRequest('/projects/my', 'GET');
+}
+
+// ========== ОТКЛИКИ НА ПРОЕКТЫ ==========
+async function bidOnProject(projectId, budget, letter) {
+    return await apiRequest(`/projects/${projectId}/bid`, 'POST', { budget, letter });
+}
+
+async function getProjectBids(projectId) {
+    return await apiRequest(`/projects/${projectId}/bids`, 'GET');
+}
+
+async function acceptBid(bidId) {
+    return await apiRequest(`/bids/${bidId}/accept`, 'POST');
+}
+
+async function rejectBid(bidId) {
+    return await apiRequest(`/bids/${bidId}/reject`, 'POST');
+}
+
+// ========== ЗАДАЧИ ==========
+async function getUserTasks(filter = 'all') {
+    return await apiRequest(`/tasks?filter=${filter}`, 'GET');
+}
+
+async function getTask(id) {
+    return await apiRequest(`/tasks/${id}`, 'GET');
+}
+
+async function updateTaskStatus(taskId, status) {
+    return await apiRequest(`/tasks/${taskId}`, 'PUT', { status });
+}
+
+async function getAvailableTasks(filters = {}) {
+    let url = '/tasks/available?';
+    const params = new URLSearchParams(filters);
+    return await apiRequest(url + params.toString(), 'GET');
+}
+
+async function createTaskBid(taskId, bidData) {
+    return await apiRequest(`/tasks/${taskId}/bids`, 'POST', bidData);
+}
+
+// ========== ОТКЛИКИ ==========
+async function getUserBids(filter = 'all') {
+    return await apiRequest(`/bids/my?filter=${filter}`, 'GET');
+}
+
+async function getProjectBids(projectId) {
+    return await apiRequest(`/projects/${projectId}/bids`, 'GET');
+}
+
+async function acceptBid(bidId) {
+    return await apiRequest(`/bids/${bidId}/accept`, 'POST');
+}
+
+async function rejectBid(bidId) {
+    return await apiRequest(`/bids/${bidId}/reject`, 'POST');
+}
+
+// ========== ЭКСПОРТ ==========
 window.api = {
+    // Авторизация
     login,
     register,
+    getCurrentUser,
+    
+    // Проекты
     getProjects,
     getProject,
-    createProject
+    createProject,
+    updateProject,
+    deleteProject,
+    getUserProjects,
+    
+    // Отклики на проекты
+    bidOnProject,
+    getProjectBids,
+    acceptBid,
+    rejectBid,
+    
+    // Задачи
+    getUserTasks,
+    getTask,
+    updateTaskStatus,
+    getAvailableTasks,
+    createTaskBid,
+
+    getUserBids,
+    getProjectBids,
+    acceptBid,
+    rejectBid
 };

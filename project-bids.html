@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>Отклики на проект</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .bids-container {
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .bid-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .bid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .bid-status {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .bid-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">ProjectCollab</a>
+            <nav class="nav">
+                <a href="index.html">Главная</a>
+                <a href="profile.html">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="back-button">
+                <button class="btn btn-outline" onclick="history.back()">← Назад</button>
+            </div>
+            
+            <div class="bids-container" id="bids-container">
+                Загрузка...
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
+
+        async function loadBids() {
+            const container = document.getElementById('bids-container');
+            
+            try {
+                const project = await api.getProject(projectId);
+                const bids = await api.getProjectBids(projectId);
+                
+                let html = `<h1>Отклики на проект: ${project.data.title}</h1>`;
+                
+                if(bids.data && bids.data.length > 0) {
+                    bids.data.forEach(bid => {
+                        html += `
+                            <div class="bid-card">
+                                <div class="bid-header">
+                                    <h3>${bid.developer_name}</h3>
+                                    <span class="bid-status status-${bid.status_name}">${bid.status_name}</span>
+                                </div>
+                                <p><strong>Предложение:</strong> ${bid.proposed_budget || 'не указано'} ₽</p>
+                                <p>${bid.cover_letter || 'Нет сопроводительного письма'}</p>
+                                ${bid.status_name === 'pending' ? `
+                                    <div class="bid-actions">
+                                        <button class="btn btn-small btn-success" onclick="handleBid(${bid.id}, 'accept')">Принять</button>
+                                        <button class="btn btn-small btn-danger" onclick="handleBid(${bid.id}, 'reject')">Отклонить</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p>Пока нет откликов на этот проект</p>';
+                }
+                
+                container.innerHTML = html;
+            } catch(error) {
+                container.innerHTML = '<p>Ошибка загрузки</p>';
+            }
+        }
+
+        async function handleBid(bidId, action) {
+            const result = action === 'accept' ? await api.acceptBid(bidId) : await api.rejectBid(bidId);
+            if(result.status === 'success') {
+                loadBids();
+            }
+        }
+
+        loadBids();
+    </script>
+</body>
+</html>

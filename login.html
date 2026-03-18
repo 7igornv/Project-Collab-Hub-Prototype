@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Вход / Регистрация - Project Collab Hub</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -68,16 +69,28 @@
             align-items: center;
             gap: 5px;
         }
+
+        .nav .btn {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
+    <script>
+        // ПРОВЕРКА АВТОРИЗАЦИИ - если уже вошел, отправляем на главную
+        const token = localStorage.getItem('token');
+        if(token) {
+            window.location.href = 'index.html';
+        }
+    </script>
+
     <header class="header">
         <div class="container">
             <a href="index.html" class="logo">ProjectCollab</a>
             <nav class="nav">
                 <a href="index.html">Главная</a>
-                <a href="projects.html">Проекты</a>
                 <a href="login.html" class="btn btn-primary">Вход</a>
+                <a href="login.html?tab=register" class="btn btn-outline">Регистрация</a>
             </nav>
         </div>
     </header>
@@ -177,6 +190,12 @@
             }
         }
 
+        // Открытие нужной вкладки по параметру в URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('tab') === 'register') {
+            switchTab('register');
+        }
+
         // Обработка входа
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -218,6 +237,8 @@
             if(result.status === 'success') {
                 alert('Регистрация успешна! Теперь войдите.');
                 switchTab('login');
+                // Очищаем форму регистрации
+                document.getElementById('register-form').reset();
             } else {
                 alert('Ошибка: ' + result.message);
             }

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Collab Hub - платформа для поиска команды и совместной работы над проектами">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Project Collab Hub - Главная</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -61,6 +63,244 @@
             padding: 40px;
             color: var(--secondary);
         }
+
+        .projects-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-box button {
+            padding: 8px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: var(--primary-dark);
+        }
+
+        .search-box .clear-btn {
+            background: var(--secondary);
+        }
+
+        .search-box .clear-btn:hover {
+            background: #5a6268;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .skill-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .skill-filter-btn {
+            padding: 5px 12px;
+            background: var(--light);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .skill-filter-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .skill-filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state h3 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .project-status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-open {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-progress {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-done {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -68,10 +308,10 @@
         <div class="container">
             <a href="index.html" class="logo">ProjectCollab</a>
             <nav class="nav">
-                <a href="projects.html">Проекты</a>
+                <a href="index.html">Главная</a>
                 <a href="#" id="profile-link" style="display: none;">Профиль</a>
                 <a href="login.html" id="login-link" class="btn btn-outline">Вход</a>
-                <a href="register.html" id="register-link" class="btn btn-primary">Регистрация</a>
+                <a href="login.html?tab=register" id="register-link" class="btn btn-primary">Регистрация</a>
                 <a href="#" id="logout-link" style="display: none;" class="btn btn-outline">Выход</a>
             </nav>
         </div>
@@ -87,7 +327,35 @@
         </section>
 
         <section class="container">
-            <h2>Последние проекты</h2>
+            <div class="filters-row">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Поиск проектов..." value="">
+                    <button onclick="applyFilters()">Найти</button>
+                    <button class="clear-btn" onclick="clearSearch()">✕ Очистить</button>
+                </div>
+                
+                <div class="projects-header" style="margin-bottom: 0; width: 100%;">
+                    <h2>Проекты</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="sort-projects" class="filter-select" onchange="applyFilters()">
+                            <option value="newest">Сначала новые</option>
+                            <option value="budget_asc">Бюджет (по возрастанию)</option>
+                            <option value="budget_desc">Бюджет (по убыванию)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="skill-filters" id="skill-filters">
+                    <button class="skill-filter-btn active" onclick="filterBySkill('')">Все</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('PHP')">PHP</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('JavaScript')">JavaScript</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('Python')">Python</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('UI/UX')">UI/UX</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('HTML/CSS')">HTML/CSS</button>
+                    <button class="skill-filter-btn" onclick="filterBySkill('MySQL')">MySQL</button>
+                </div>
+            </div>
+
             <div class="projects-grid" id="projects-list">
                 <div class="loading">Загрузка проектов...</div>
             </div>
@@ -100,12 +368,42 @@
         </div>
     </footer>
 
+    <!-- Модальное окно для отклика -->
+    <div id="bid-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeBidModal()">&times;</span>
+            <h2 id="modal-project-title">Откликнуться на проект</h2>
+            
+            <form id="bid-form">
+                <input type="hidden" id="bid-project-id">
+                
+                <div class="form-group">
+                    <label>Ваше предложение (бюджет) ₽</label>
+                    <input type="number" id="bid-budget" class="form-control" placeholder="Сколько хотите получить?">
+                </div>
+                
+                <div class="form-group">
+                    <label>Сопроводительное письмо</label>
+                    <textarea id="bid-letter" class="form-control" rows="4" placeholder="Почему вы подходите для этого проекта?"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Отправить отклик</button>
+            </form>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script>
+        let currentUser = null;
+        let currentSkill = '';
+        let currentSearch = '';
+        let currentSort = 'newest';
+
         // Проверка авторизации
         function checkAuth() {
             const token = localStorage.getItem('token');
             const user = JSON.parse(localStorage.getItem('user') || '{}');
+            currentUser = user;
             
             if(token) {
                 document.getElementById('login-link').style.display = 'none';
@@ -113,10 +411,14 @@
                 document.getElementById('profile-link').style.display = 'inline';
                 document.getElementById('logout-link').style.display = 'inline';
                 
-                // Добавляем имя пользователя в навигацию
                 const profileLink = document.getElementById('profile-link');
                 profileLink.innerHTML = user.full_name || 'Профиль';
                 profileLink.href = 'profile.html';
+            } else {
+                document.getElementById('login-link').style.display = 'inline';
+                document.getElementById('register-link').style.display = 'inline';
+                document.getElementById('profile-link').style.display = 'none';
+                document.getElementById('logout-link').style.display = 'none';
             }
         }
 
@@ -128,39 +430,187 @@
             window.location.reload();
         });
 
+        // Очистка поиска
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            currentSearch = '';
+            document.getElementById('sort-projects').value = 'newest';
+            currentSort = 'newest';
+            
+            document.querySelectorAll('.skill-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.skill-filter-btn:first-child').classList.add('active');
+            currentSkill = '';
+            
+            loadProjects();
+        }
+
+        // Применить все фильтры
+        function applyFilters() {
+            currentSearch = document.getElementById('search-input').value;
+            currentSort = document.getElementById('sort-projects').value;
+            loadProjects();
+        }
+
+        // Фильтр по навыку
+        function filterBySkill(skill) {
+            currentSkill = skill;
+            
+            document.querySelectorAll('.skill-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadProjects();
+        }
+
+        // Открыть модальное окно для отклика
+        window.bidOnProject = (projectId, projectTitle) => {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if(!token) {
+                alert('Чтобы откликнуться, нужно войти в систему');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            if(user.role_id != 2) {
+                alert('Только исполнители могут откликаться на проекты');
+                return;
+            }
+            
+            document.getElementById('bid-project-id').value = projectId;
+            document.getElementById('modal-project-title').textContent = `Отклик на проект: ${projectTitle}`;
+            document.getElementById('bid-modal').classList.add('active');
+        };
+
+        // Закрыть модальное окно
+        window.closeBidModal = () => {
+            document.getElementById('bid-modal').classList.remove('active');
+            document.getElementById('bid-form').reset();
+        };
+
+        // Отправка отклика
+        document.getElementById('bid-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projectId = document.getElementById('bid-project-id').value;
+            const budget = document.getElementById('bid-budget').value;
+            const letter = document.getElementById('bid-letter').value;
+            
+            const result = await api.bidOnProject(projectId, budget, letter);
+            
+            if(result.status === 'success') {
+                alert('Отклик успешно отправлен!');
+                closeBidModal();
+            } else {
+                alert('Ошибка: ' + (result.message || 'Не удалось отправить отклик'));
+            }
+        });
+
+        // Закрытие модального окна по клику вне его
+        window.onclick = (e) => {
+            const modal = document.getElementById('bid-modal');
+            if(e.target === modal) {
+                closeBidModal();
+            }
+        };
+
         // Загрузка проектов
         async function loadProjects() {
             const projectsList = document.getElementById('projects-list');
+            projectsList.innerHTML = '<div class="loading">Загрузка проектов...</div>';
             
             try {
-                const result = await api.getProjects(1, 6);
+                const result = await api.getProjects(1, 12, currentSkill, currentSearch, currentSort);
                 
                 if(result.status === 'success' && result.data.length > 0) {
-                    projectsList.innerHTML = result.data.map(project => `
-                        <div class="project-card">
-                            <h3 class="project-title">${project.title}</h3>
-                            <p>${project.description.substring(0, 100)}...</p>
-                            <p><strong>Бюджет:</strong> ${project.budget} ₽</p>
+                    projectsList.innerHTML = result.data.map(project => {
+                        const isOwner = currentUser && project.client_id === currentUser.id;
+                        const canBid = !isOwner && project.status_id == 2 && currentUser && currentUser.role_id == 2;
+                        
+                        // ПРИНУДИТЕЛЬНАЯ ОТЛАДКА
+                        console.log('Проект ID:', project.id);
+                        console.log('- isOwner:', isOwner, '(currentUser.id:', currentUser?.id, 'project.client_id:', project.client_id, ')');
+                        console.log('- status_id:', project.status_id, '=== 2?', project.status_id === 2);
+                        console.log('- role_id:', currentUser?.role_id, '=== 2?', currentUser?.role_id === 2);
+                        console.log('- canBid ИТОГО:', canBid);
+                        
+                        return `
+                        <div class="project-card" data-project-id="${project.id}">
+                            <div class="project-header">
+                                <h3 class="project-title">${project.title}</h3>
+                                <span class="project-status-badge status-open">Открыт</span>
+                            </div>
+                            <p>${project.description.substring(0, 100)}${project.description.length > 100 ? '...' : ''}</p>
+                            <p><strong>Бюджет:</strong> ${project.budget ? project.budget + ' ₽' : 'Не указан'}</p>
                             <p><strong>Заказчик:</strong> ${project.client_name}</p>
+                            <p><strong>Дата:</strong> ${new Date(project.created_at).toLocaleDateString()}</p>
                             <div class="project-skills">
                                 ${project.skills ? project.skills.split(',').map(skill => 
                                     `<span class="skill-tag">${skill}</span>`
                                 ).join('') : ''}
                             </div>
-                            <button class="btn btn-outline" onclick="viewProject(${project.id})">Подробнее</button>
+                            <div class="project-actions">
+                                <button class="btn btn-small btn-primary" onclick="viewProject(${project.id})">Подробнее</button>
+                                ${canBid ? `
+                                    <button class="btn btn-small btn-success" onclick="bidOnProject(${project.id}, '${project.title.replace(/'/g, "\\'")}')">📋 Откликнуться</button>
+                                ` : `
+                                    <!-- Кнопка скрыта: canBid = ${canBid} -->
+                                `}
+                                ${isOwner ? `
+                                    <button class="btn btn-small btn-outline" onclick="editProject(${project.id})">✏️ Редактировать</button>
+                                    <button class="btn btn-small btn-danger" onclick="deleteProject(${project.id})">🗑️ Удалить</button>
+                                ` : ''}
+                            </div>
                         </div>
-                    `).join('');
-                } else {
-                    projectsList.innerHTML = '<p style="text-align: center;">Проектов пока нет</p>';
+                    `}).join('');
+                }  else {
+                    projectsList.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Проектов пока нет</h3>
+                            <p>Создайте первый проект или измените параметры поиска</p>
+                            <a href="create-project.html" class="btn btn-primary">Создать проект</a>
+                        </div>
+                    `;
                 }
             } catch(error) {
+                console.error('Error loading projects:', error);
                 projectsList.innerHTML = '<p style="text-align: center; color: var(--danger);">Ошибка загрузки проектов</p>';
             }
         }
         
+        // Просмотр проекта
         window.viewProject = (id) => {
             window.location.href = `project.html?id=${id}`;
         };
+        
+        // Редактирование проекта
+        window.editProject = (id) => {
+            window.location.href = `edit-project.html?id=${id}`;
+        };
+        
+        // Удаление проекта
+        window.deleteProject = async (id) => {
+            if(confirm('Вы уверены, что хотите удалить этот проект?')) {
+                const result = await api.deleteProject(id);
+                if(result.status === 'success') {
+                    alert('Проект удален');
+                    loadProjects();
+                } else {
+                    alert('Ошибка при удалении: ' + result.message);
+                }
+            }
+        };
+        
+        // Поиск при нажатии Enter
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                applyFilters();
+            }
+        });
         
         // Инициализация
         checkAuth();
